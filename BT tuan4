@@ -1,0 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace BT_tu4
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            InitializeComponent();
+
+            // Thiết lập Form chính là MDI Container
+            this.IsMdiContainer = true;
+
+            // Tạo MenuStrip và thêm các mục menu
+            MenuStrip menuStrip = new MenuStrip();
+            ToolStripMenuItem fileMenu = new ToolStripMenuItem("File");
+            ToolStripMenuItem openMenu = new ToolStripMenuItem("Open");
+
+            // Gán sự kiện click cho mục Open
+            openMenu.Click += openToolStripMenuItem_Click;
+
+            // Thêm mục Open vào menu File
+            fileMenu.DropDownItems.Add(openMenu);
+
+            // Thêm menu File vào MenuStrip
+            menuStrip.Items.Add(fileMenu);
+
+            // Gắn MenuStrip vào form chính
+            this.MainMenuStrip = menuStrip;
+            this.Controls.Add(menuStrip);
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp;*.gif";
+            openFileDialog.Title = "Open Image File";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                // Tạo form con (MDI Child)
+                Form childForm = new Form();
+                childForm.MdiParent = this;  // Gán Form con cho Form chính
+                childForm.Text = openFileDialog.FileName;
+
+                // Tạo PictureBox để hiển thị ảnh
+                PictureBox pictureBox = new PictureBox();
+                pictureBox.Image = Image.FromFile(openFileDialog.FileName);
+                pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                pictureBox.Dock = DockStyle.Fill;
+
+                // Thêm PictureBox vào form con
+                childForm.Controls.Add(pictureBox);
+
+                // Hiển thị Form con
+                childForm.Show();
+            }
+        }
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void menuToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void fileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
