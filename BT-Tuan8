@@ -1,0 +1,233 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+using BT_T8.model;  // Sử dụng lớp mô hình từ Entity Framework
+
+namespace BT_T8
+{
+    public partial class Form1 : Form
+    {
+        SchoolDBEntities dbContext = new SchoolDBEntities();  // Khởi tạo Entity Framework context
+
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        // Tải dữ liệu từ bảng Students và hiển thị trong DataGridView
+        public void LoadData()
+        {
+            students = dbContext.Students.ToList();  // Lấy danh sách sinh viên từ database
+            dataGridView1.DataSource = students;
+
+            // Hiển thị sinh viên đầu tiên nếu danh sách không rỗng
+            if (students.Count > 0)
+            {
+                currentIndex = 0;  // Đặt chỉ số sinh viên hiện tại là sinh viên đầu tiên
+                DisplayStudent(currentIndex);  // Hiển thị thông tin sinh viên đầu tiên
+            }
+        }
+
+        // Xử lý khi nhấn nút Thêm
+        private void btnthem_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtFullName.Text) && !string.IsNullOrWhiteSpace(txtAge.Text) && !string.IsNullOrWhiteSpace(cmbMajor.Text))
+            {
+                // Tạo sinh viên mới
+                Student newStudent = new Student
+                {
+                    FullName = txtFullName.Text,
+                    Age = int.Parse(txtAge.Text),
+                    Major = cmbMajor.Text
+                };
+
+                // Thêm vào cơ sở dữ liệu
+                dbContext.Students.Add(newStudent);
+                dbContext.SaveChanges();  // Lưu thay đổi vào database
+
+                MessageBox.Show("Thêm sinh viên thành công!");
+
+                // Tải lại dữ liệu sau khi thêm
+                LoadData();
+
+                // Xóa nội dung trong các TextBox sau khi thêm
+                ClearTextBoxes();
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng nhập đầy đủ thông tin.");
+            }
+        }
+
+        // Xử lý khi nhấn nút Sửa
+        private void btnsua_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                // Lấy StudentId từ dòng được chọn
+                int studentId = int.Parse(txtID.Text);
+
+                // Tìm sinh viên trong database
+                Student student = dbContext.Students.FirstOrDefault(s => s.StudentId == studentId);
+
+                if (student != null)
+                {
+                    // Cập nhật thông tin sinh viên
+                    student.FullName = txtFullName.Text;
+                    student.Age = int.Parse(txtAge.Text);
+                    student.Major = cmbMajor.Text;
+
+                    dbContext.SaveChanges();  // Lưu thay đổi vào database
+
+                    MessageBox.Show("Sửa thông tin sinh viên thành công!");
+
+                    // Tải lại dữ liệu sau khi sửa
+                    LoadData();
+
+                    ClearTextBoxes();
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy sinh viên.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một dòng để sửa.");
+            }
+        }
+
+        // Xử lý khi nhấn nút Xóa
+        private void btnxoa_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                // Lấy StudentId từ dòng được chọn
+                int studentId = int.Parse(txtID.Text);
+
+                // Tìm sinh viên trong database
+                Student student = dbContext.Students.FirstOrDefault(s => s.StudentId == studentId);
+
+                if (student != null)
+                {
+                    // Xóa sinh viên
+                    dbContext.Students.Remove(student);
+                    dbContext.SaveChanges();  // Lưu thay đổi vào database
+
+                    MessageBox.Show("Xóa sinh viên thành công!");
+
+                    // Tải lại dữ liệu sau khi xóa
+                    LoadData();
+
+                    ClearTextBoxes();
+                }
+                else
+                {
+                    MessageBox.Show("Không tìm thấy sinh viên.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Vui lòng chọn một dòng để xóa.");
+            }
+        }
+
+        // Khi chọn một dòng trong DataGridView
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0) // Kiểm tra nếu hàng được chọn là hợp lệ
+            {
+                DataGridViewRow row = dataGridView1.Rows[e.RowIndex];
+
+                // Hiển thị thông tin từ dòng được chọn lên các TextBox
+                txtID.Text = row.Cells[0].Value.ToString();
+                txtFullName.Text = row.Cells[1].Value.ToString();
+                txtAge.Text = row.Cells[2].Value.ToString();
+                cmbMajor.Text = row.Cells[3].Value.ToString();
+            }
+        }
+
+        // Hàm xóa nội dung trong các TextBox
+        private void ClearTextBoxes()
+        {
+            txtID.Clear();
+            txtFullName.Clear();
+            txtAge.Clear();
+            cmbMajor.SelectedIndex = -1;  // Đặt lại combobox
+        }
+
+        // Xử lý sự kiện khi form load
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            LoadData();
+// Tải dữ liệu khi form load
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+           
+        }
+
+        private void dataGridView1_SelectionChanged(object sender, EventArgs e)
+        {
+            // Kiểm tra nếu có hàng nào được chọn
+            if (dataGridView1.SelectedRows.Count > 0)
+            {
+                // Lấy hàng đầu tiên được chọn
+                DataGridViewRow selectedRow = dataGridView1.SelectedRows[0];
+
+                // Hiển thị thông tin của sinh viên trong các TextBox và ComboBox
+                txtID.Text = selectedRow.Cells["StudentId"].Value.ToString();
+                txtFullName.Text = selectedRow.Cells["FullName"].Value.ToString();
+                txtAge.Text = selectedRow.Cells["Age"].Value.ToString();
+                cmbMajor.Text = selectedRow.Cells["Major"].Value.ToString();
+            }
+        }
+
+        private int currentIndex = 0;  // Chỉ số của sinh viên hiện tại
+        private List<Student> students;  // Danh sách sinh viên
+        private void DisplayStudent(int index)
+        {
+            if (students != null && students.Count > 0 && index >= 0 && index < students.Count)
+            {
+                var student = students[index];  // Lấy sinh viên tại chỉ số hiện tại
+
+                // Hiển thị thông tin của sinh viên vào các TextBox và ComboBox
+                txtID.Text = student.StudentId.ToString();
+                txtFullName.Text = student.FullName;
+                txtAge.Text = student.Age.ToString();
+                cmbMajor.Text = student.Major;
+            }
+        }
+
+
+        private void btnnext_Click(object sender, EventArgs e)
+        {
+            // Kiểm tra nếu danh sách sinh viên tồn tại và chỉ số hiện tại chưa đến cuối danh sách
+            if (students != null && currentIndex < students.Count - 1)
+            {
+                currentIndex++;  // Tăng chỉ số để chuyển sang sinh viên tiếp theo
+                DisplayStudent(currentIndex);  // Hiển thị thông tin sinh viên tiếp theo
+            }
+            else
+            {
+                MessageBox.Show("Đây là sinh viên cuối cùng.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void btnPrevious_Click(object sender, EventArgs e)
+        {
+            // Kiểm tra nếu danh sách sinh viên tồn tại và chỉ số hiện tại chưa về đầu danh sách
+            if (students != null && currentIndex > 0)
+            {
+                currentIndex--;  // Giảm chỉ số để quay lại sinh viên trước đó
+                DisplayStudent(currentIndex);  // Hiển thị thông tin sinh viên trước đó
+            }
+            else
+            {
+                MessageBox.Show("Đây là sinh viên đầu tiên.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+    }
+}
